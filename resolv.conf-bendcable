@@ -1,0 +1,5 @@
+domain bendcable.com
+search bendcable.com
+nameserver 216.228.160.6
+nameserver 216.228.160.7
+nameserver 216.228.160.8
