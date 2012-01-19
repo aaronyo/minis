@@ -1,0 +1,100 @@
+### Here are the problems I was seeing
+
+aboyd-laptop:Volumes aaronyo$ hdiutil attach -nomount -readwrite TimeCapsuleAaronLaptop/aboyd-laptop.sparsebundle
+hdiutil: attach failed - Read-only file system
+
+aboyd-laptop:TimeCapsuleAaronLaptop aaronyo$ hdiutil attach -nomount aboyd-laptop.sparsebundle/
+/dev/disk2          	Apple_partition_scheme         	
+/dev/disk2s1        	Apple_partition_map            	
+/dev/disk2s2        	Apple_HFSX                     	
+aboyd-laptop:TimeCapsuleAaronLaptop aaronyo$ fsck_hfs -f /dev/disk2
+** /dev/rdisk2 (NO WRITE)
+   Executing fsck_hfs (version diskdev_cmds-540.1~34).
+** Checking Journaled HFS Plus volume.
+   Invalid B-tree node size
+(3, 0)
+** The volume   could not be verified completely.
+
+aboyd-laptop:TimeCapsuleAaronLaptop aaronyo$ fsck_hfs -drfy /dev/disk2s2
+Unable to open block device /dev/disk2s2: Permission deniedjournal_replay(/dev/disk2s2) returned 13
+** /dev/rdisk2s2 (NO WRITE)
+	Using cacheBlockSize=32K cacheTotalBlock=24576 cacheSize=786432K.
+   Executing fsck_hfs (version diskdev_cmds-540.1~34).
+Non-empty journal:  start = 167383040, end = 194805760
+   Journal need to be replayed but volume is read-only
+** Checking Journaled HFS Plus volume.
+** Detected a case-sensitive volume.
+   The volume name is Time Machine Backups
+** Checking extents overflow file.
+** Checking catalog file.
+** The volume Time Machine Backups was found corrupt and needs to be repaired.
+	volume type is pure HFS+ 
+	primary MDB is at block 0 0x00 
+	alternate MDB is at block 0 0x00 
+	primary VHB is at block 2 0x02 
+	alternate VHB is at block 5298148206 0x13bcb536e 
+	sector size = 512 0x200 
+	VolumeObject flags = 0x07 
+	total sectors for volume = 5298148208 0x13bcb5370 
+	total sectors for embedded volume = 0 0x00 
+
+
+### And here's how I fixed it
+
+aboyd-laptop:TimeCapsuleAaronLaptop aaronyo$ hdiutil detach /dev/disk2
+"disk2" unmounted.
+"disk2" ejected.
+
+aboyd-laptop:TimeCapsuleAaronLaptop aaronyo$ chflags -R nouchg aboyd-laptop.sparsebundle
+
+aboyd-laptop:TimeCapsuleAaronLaptop aaronyo$ hdiutil attach -nomount -readwrite aboyd-laptop.sparsebundle
+/dev/disk2          	Apple_partition_scheme         	
+/dev/disk2s1        	Apple_partition_map            	
+/dev/disk2s2        	Apple_HFSX                     	
+
+** /dev/rdisk2s2
+   Executing fsck_hfs (version diskdev_cmds-540.1~34).
+** Checking Journaled HFS Plus volume.
+** Detected a case-sensitive volume.
+   The volume name is Time Machine Backups
+** Checking extents overflow file.
+** Checking catalog file.
+** Rebuilding catalog B-tree.
+** Rechecking volume.
+** Checking Journaled HFS Plus volume.
+** Detected a case-sensitive volume.
+   The volume name is Time Machine Backups
+** Checking extents overflow file.
+** Checking catalog file.
+** Checking multi-linked files.
+** Checking catalog hierarchy.
+** Checking extended attributes file.
+** Checking multi-linked directories.
+** Checking volume bitmap.
+** Checking volume information.
+   Invalid volume file count
+   (It should be 999180 instead of 787947)
+   Invalid volume directory count
+   (It should be 218210 instead of 190541)
+   Invalid volume free block count
+   (It should be 322337665 instead of 325429991)
+   Volume header needs minor repair
+(2, 0)
+** Repairing volume.
+** Rechecking volume.
+** Checking Journaled HFS Plus volume.
+** Detected a case-sensitive volume.
+   The volume name is Time Machine Backups
+** Checking extents overflow file.
+** Checking catalog file.
+** Checking multi-linked files.
+** Checking catalog hierarchy.
+** Checking extended attributes file.
+** Checking multi-linked directories.
+** Checking volume bitmap.
+** Checking volume information.
+** The volume Time Machine Backups was repaired successfully.
+aboyd-laptop:TimeCapsuleAaronLaptop aaronyo$ hdiutil detach /dev/disk2
+"disk2" unmounted.
+"disk2" ejected.
+
